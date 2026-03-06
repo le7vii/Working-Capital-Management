@@ -1,0 +1,5 @@
+{
+  "name": "CapitalFlow Tracker",
+  "description": "Track payables, receivables, and identify working capital gaps with weekly cash flow forecasting.",
+  "requestFramePermissions": []
+}
