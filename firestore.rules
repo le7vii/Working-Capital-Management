@@ -5,31 +5,20 @@ service cloud.firestore {
     // Assumed Data Model
     // ===============================================================
     //
-    // Collection: transactions
-    // Fields:
-    //   - type: string (payable/receivable)
-    //   - amount: number
-    //   - dueDate: string (ISO 8601)
-    //   - status: string (pending/paid/overdue)
-    //   - description: string
-    //   - counterparty: string
-    //   - category: string
-    //   - userId: string (owner)
-    //   - createdAt: string
-    //   - updatedAt: string
+    // Collection: bankBalances
+    // Fields: bankName, accountName, balance, currency, date, userId
+    //
+    // Collection: receivables
+    // Fields: customerName, invoiceNumber, invoiceDate, dueDate, invoiceAmount, amountOutstanding, paymentTerms, daysOutstanding, userId
+    //
+    // Collection: payables
+    // Fields: vendorName, invoiceNumber, invoiceDate, dueDate, invoiceAmount, amountOutstanding, paymentTerms, daysOutstanding, userId
     //
     // Collection: users
-    // Fields:
-    //   - companyName: string
-    //   - currency: string
-    //   - email: string
-    //   - userId: string
+    // Fields: userId, email, companyName
     //
     // ===============================================================
 
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -42,29 +31,74 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
-    function isValidTransaction(data) {
-      return data.type in ['payable', 'receivable'] &&
-             data.amount is number && data.amount >= 0 &&
-             data.dueDate is string &&
-             data.status in ['pending', 'paid', 'overdue'] &&
+    function isValidBankBalance(data) {
+      let requiredFields = ['bankName', 'accountName', 'balance', 'currency', 'date', 'userId'];
+      return data.keys().hasAll(requiredFields) &&
+             data.keys().hasOnly(requiredFields) &&
              data.userId == request.auth.uid &&
-             data.keys().hasAll(['type', 'amount', 'dueDate', 'status', 'userId']);
+             data.bankName is string &&
+             data.accountName is string &&
+             data.balance is number &&
+             data.currency is string &&
+             data.date is string;
+    }
+
+    function isValidReceivable(data) {
+      let requiredFields = ['customerName', 'invoiceNumber', 'invoiceDate', 'dueDate', 'invoiceAmount', 'amountOutstanding', 'paymentTerms', 'daysOutstanding', 'userId'];
+      return data.keys().hasAll(requiredFields) &&
+             data.keys().hasOnly(requiredFields) &&
+             data.userId == request.auth.uid &&
+             data.customerName is string &&
+             data.invoiceNumber is string &&
+             data.invoiceDate is string &&
+             data.dueDate is string &&
+             data.invoiceAmount is number &&
+             data.amountOutstanding is number &&
+             data.paymentTerms is string &&
+             data.daysOutstanding is number;
+    }
+
+    function isValidPayable(data) {
+      let requiredFields = ['vendorName', 'invoiceNumber', 'invoiceDate', 'dueDate', 'invoiceAmount', 'amountOutstanding', 'paymentTerms', 'daysOutstanding', 'userId'];
+      return data.keys().hasAll(requiredFields) &&
+             data.keys().hasOnly(requiredFields) &&
+             data.userId == request.auth.uid &&
+             data.vendorName is string &&
+             data.invoiceNumber is string &&
+             data.invoiceDate is string &&
+             data.dueDate is string &&
+             data.invoiceAmount is number &&
+             data.amountOutstanding is number &&
+             data.paymentTerms is string &&
+             data.daysOutstanding is number;
     }
 
     function isValidUser(data) {
-      return data.userId == request.auth.uid &&
-             data.email is string &&
-             data.keys().hasAll(['userId', 'email']);
+      let allowedFields = ['userId', 'email', 'companyName'];
+      return data.keys().hasAll(['userId', 'email']) &&
+             data.keys().hasOnly(allowedFields) &&
+             data.userId == request.auth.uid &&
+             data.email is string;
     }
 
-    // ===============================================================
-    // Rules
-    // ===============================================================
-
-    match /transactions/{transactionId} {
+    match /bankBalances/{id} {
       allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
-      allow update: if isAuthenticated() && isDocOwner() && isValidTransaction(request.resource.data);
+      allow create: if isAuthenticated() && isValidBankBalance(request.resource.data);
+      allow update: if isAuthenticated() && isDocOwner() && isValidBankBalance(request.resource.data);
+      allow delete: if isAuthenticated() && isDocOwner();
+    }
+
+    match /receivables/{id} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidReceivable(request.resource.data);
+      allow update: if isAuthenticated() && isDocOwner() && isValidReceivable(request.resource.data);
+      allow delete: if isAuthenticated() && isDocOwner();
+    }
+
+    match /payables/{id} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidPayable(request.resource.data);
+      allow update: if isAuthenticated() && isDocOwner() && isValidPayable(request.resource.data);
       allow delete: if isAuthenticated() && isDocOwner();
     }
 

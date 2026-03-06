@@ -1,86 +1,81 @@
 {
   "entities": {
-    "Transaction": {
-      "title": "Transaction",
-      "description": "Represents a payable or receivable entry.",
+    "BankBalance": {
+      "title": "Bank Balance",
+      "description": "Snapshots of bank account balances.",
       "type": "object",
       "properties": {
-        "type": {
-          "type": "string",
-          "enum": ["payable", "receivable"],
-          "description": "Whether this is money coming in or going out."
-        },
-        "amount": {
-          "type": "number",
-          "description": "The monetary value of the transaction."
-        },
-        "dueDate": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The date when the transaction is due."
-        },
-        "status": {
-          "type": "string",
-          "enum": ["pending", "paid", "overdue"],
-          "description": "Current status of the transaction."
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the transaction."
-        },
-        "counterparty": {
-          "type": "string",
-          "description": "The entity involved in the transaction (vendor or client)."
-        },
-        "category": {
-          "type": "string",
-          "description": "Category for classification (e.g., Inventory, Services, Sales)."
-        },
-        "userId": {
-          "type": "string",
-          "description": "The UID of the user who owns this transaction."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "bankName": { "type": "string" },
+        "accountName": { "type": "string" },
+        "balance": { "type": "number" },
+        "currency": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "userId": { "type": "string" }
       },
-      "required": ["type", "amount", "dueDate", "status", "userId"]
+      "required": ["bankName", "accountName", "balance", "currency", "date", "userId"]
+    },
+    "Receivable": {
+      "title": "Receivable",
+      "description": "Accounts Receivable ledger entry.",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "invoiceDate": { "type": "string", "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "invoiceAmount": { "type": "number" },
+        "amountOutstanding": { "type": "number" },
+        "paymentTerms": { "type": "string" },
+        "daysOutstanding": { "type": "number" },
+        "userId": { "type": "string" }
+      },
+      "required": ["customerName", "invoiceNumber", "invoiceAmount", "amountOutstanding", "userId"]
+    },
+    "Payable": {
+      "title": "Payable",
+      "description": "Accounts Payable ledger entry.",
+      "type": "object",
+      "properties": {
+        "vendorName": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "invoiceDate": { "type": "string", "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "invoiceAmount": { "type": "number" },
+        "amountOutstanding": { "type": "number" },
+        "paymentTerms": { "type": "string" },
+        "daysOutstanding": { "type": "number" },
+        "userId": { "type": "string" }
+      },
+      "required": ["vendorName", "invoiceNumber", "invoiceAmount", "amountOutstanding", "userId"]
     },
     "UserProfile": {
       "title": "User Profile",
-      "description": "Basic settings for the user's company.",
+      "description": "User specific settings.",
       "type": "object",
       "properties": {
-        "companyName": {
-          "type": "string"
-        },
-        "currency": {
-          "type": "string",
-          "description": "Currency code (e.g., USD, EUR)."
-        },
-        "email": {
-          "type": "string"
-        },
-        "userId": {
-          "type": "string"
-        }
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "companyName": { "type": "string" }
       },
       "required": ["userId", "email"]
     }
   },
   "firestore": {
-    "/transactions/{transactionId}": {
-      "schema": "Transaction",
-      "description": "Collection of all payables and receivables."
+    "/bankBalances/{id}": {
+      "schema": "BankBalance",
+      "description": "User's bank balances."
+    },
+    "/receivables/{id}": {
+      "schema": "Receivable",
+      "description": "User's accounts receivable."
+    },
+    "/payables/{id}": {
+      "schema": "Payable",
+      "description": "User's accounts payable."
     },
     "/users/{userId}": {
       "schema": "UserProfile",
-      "description": "User specific settings and profile."
+      "description": "User profile information."
     }
   }
 }
